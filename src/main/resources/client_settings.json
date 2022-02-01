@@ -1,0 +1,5 @@
+{
+  "caCertificateFileName": "/etc/mosquitto/ca_certificates/ca.crt",
+  "clientCertificateFileName":"mosquitto-client/client.crt",
+  "clientKeyFileName)":"mosquitto-client/client.key"
+}
