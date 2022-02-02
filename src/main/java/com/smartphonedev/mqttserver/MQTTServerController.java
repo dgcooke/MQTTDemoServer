@@ -68,11 +68,9 @@ public class MQTTServerController implements Notification, Initializable
     @Override
     public void update(String message)
     {
-        Runnable runnable = () -> {
-            Platform.runLater(() -> {
-                statusLabel.setText(message);
-            });
-        };
+        Platform.runLater(() -> {
+            statusLabel.setText(message);
+        });
 
     }
 

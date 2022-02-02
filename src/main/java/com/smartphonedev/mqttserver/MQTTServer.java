@@ -66,7 +66,21 @@ public class MQTTServer extends Application
         {
             try
             {
-                mqttAsyncClient.publish(MQTT_TOPIIC, messageToSend.getBytes(), MQTT_QOS, retained, null, null);
+                mqttAsyncClient.publish(MQTT_TOPIIC, messageToSend.getBytes(), MQTT_QOS, retained, null, new IMqttActionListener()
+                {
+
+                    @Override
+                    public void onSuccess(IMqttToken iMqttToken)
+                    {
+                        getNotificationObservable().setInformation("Message sent successfully");
+                    }
+
+                    @Override
+                    public void onFailure(IMqttToken iMqttToken, Throwable throwable)
+                    {
+                        getNotificationObservable().setInformation("Message not sent");
+                    }
+                });
             } catch (MqttPersistenceException pe)
             {
                 getNotificationObservable().setInformation("Message not sent: PersistenceException");
