@@ -1,5 +1,8 @@
 {
-  "caCertificateFileName": "/etc/mosquitto/ca_certificates/ca.crt",
-  "clientCertificateFileName":"mosquitto-client/client.crt",
-  "clientKeyFileName)":"mosquitto-client/client.key"
+  "caCertificateFilePath": "/etc/mosquitto/ca_certificates/ca.crt",
+  "clientCertificateFilePath":"/home/damien/mosquitto-client/client.crt",
+  "clientKeyFilePath":"/home/damien/mosquitto-client/client.key",
+  "serverHost": "development",
+  "userName": "mqttdev",
+  "password": "programmer"
 }

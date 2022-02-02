@@ -20,6 +20,21 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>javax.json</groupId>
+			<artifactId>javax.json-api</artifactId>
+			<version>1.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.json</artifactId>
+			<version>1.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>net.jcip</groupId>
+			<artifactId>jcip-annotations</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
 			<version>${javafx.version}</version>
@@ -52,7 +67,7 @@
 		<dependency>
 			<groupId>com.puppycrawl.tools</groupId>
 			<artifactId>checkstyle</artifactId>
-			<version>8.25</version> <!-- Checkstyle version -->
+			<version>9.2.1</version> <!-- Checkstyle version -->
 		</dependency>
 		<dependency>
 			<groupId>org.assertj</groupId>
@@ -230,7 +245,7 @@
 					<dependency>
 						<groupId>com.puppycrawl.tools</groupId>
 						<artifactId>checkstyle</artifactId>
-						<version>8.25</version> <!-- Checkstyle version -->
+						<version>9.2.1</version> <!-- Checkstyle version -->
 					</dependency>
 				</dependencies>
 				<executions>
