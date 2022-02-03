@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MQTTServer extends Application
 {
@@ -95,7 +96,8 @@ public class MQTTServer extends Application
 
     protected boolean connectToMQTTServer()
     {
-        boolean didConnect = false;
+        final AtomicBoolean didConnect = new AtomicBoolean(false);
+        final AtomicBoolean hasUpdated = new AtomicBoolean(false);
         var resourceReader = new ResourceReader();
         Optional<String> hostname;
         try
@@ -121,7 +123,7 @@ public class MQTTServer extends Application
             final int mqttServerPort = 8883;
             final String mqttServerURI = String.format("ssl://%s:%d", mqttServerHost, mqttServerPort);
 
-            final String mqttClientId = hostname + "-mqtt-client";
+            final String mqttClientId = hostname + "-mqtt-server";
             mqttAsyncClient = new MqttAsyncClient(mqttServerURI, mqttClientId, memoryPersistence);
 
 
@@ -133,41 +135,14 @@ public class MQTTServer extends Application
             SSLSocketFactory socketFactory;
             try {
                 socketFactory = SecurityHelper.createSocketFactory(caCertificateFileName, clientCertificateFileName, clientKeyFileName);
-            } catch (Exception e1) {
-                e1.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println(String.format("Failed to successfully connect, due to SSL exception"));
                 return false;
             }
 
             mqttConnectOptions.setSocketFactory(socketFactory);
-            mqttAsyncClient.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause)
-                {
-                    cause.printStackTrace();
-                    getNotificationObservable().setInformation("Connection Failed");
 
-                }
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token)
-                {
-                    System.out.println(String.format("Message with id of : " + token.getMessageId() + " successfully sent"));
-                }
-                @Override
-                public void messageArrived(String topic, MqttMessage message) throws Exception
-                {
-                    if (!topic.equals(MQTT_TOPIIC))
-                    {
-                        return;
-                    }
-                    String messageText = new String(message.getPayload(), "UTF-8");
-                    System.out.println(String.format("Topic: %s. Payload: %s", topic, messageText));
-                    switch(messageText)
-                    {
-                        case "Staff-list-update" -> System.out.println("Updating Staff List");
-                        default  -> System.out.println("Unknown command");
-                    }
-                }
-            });
 
             // In this case, we don't use the token
             IMqttToken mqttConnectToken = mqttAsyncClient.connect(
@@ -179,21 +154,38 @@ public class MQTTServer extends Application
                         {
                             getNotificationObservable().setInformation("Connected");
                             System.out.println(String.format("Successfully connected"));
+                            didConnect.set(true);
+                            hasUpdated.set(true);
                         }
                         @Override
                         public void onFailure(IMqttToken asyncActionToken, Throwable exception)
                         {
                             exception.printStackTrace();
                             System.out.println(String.format("Failed to successfully connect"));
+                            didConnect.set(false);
+                            hasUpdated.set(true);
                         }
                     });
-            didConnect = mqttConnectToken.isComplete(); //is true all is connected
+
         } catch (MqttException e)
         {
             e.printStackTrace();
         }
 
-        return true;
+        //wait for the connect operation to finish
+        while (!hasUpdated.get())
+        {
+            System.out.println("Attempting to connect....");
+            try
+            {
+                Thread.sleep(250);
+            } catch (InterruptedException e)
+            {
+                //nothing to see here
+            }
+
+        }
+        return didConnect.get();
     }
 
 

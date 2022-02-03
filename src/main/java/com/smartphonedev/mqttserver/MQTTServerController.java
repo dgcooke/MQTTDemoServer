@@ -52,7 +52,11 @@ public class MQTTServerController implements Notification, Initializable
                 messageToSendText.setVisible(true);
                 messageToSendLabel.setVisible(true);
             });
+        } else
+        {
+            System.out.println("connectToMQTTServer failed");
         }
+
     }
 
     @FXML
