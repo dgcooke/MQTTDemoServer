@@ -11,14 +11,20 @@
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<junit-jupiter.version>5.8.1</junit-jupiter.version>
-		<org.assertj.version>3.21.0</org.assertj.version>
+		<junit-jupiter.version>5.8.2</junit-jupiter.version>
+		<org.assertj.version>3.22.0</org.assertj.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
+		<protobuf.java.version>3.19.4</protobuf.java.version>
 		<javafx.version>17.0.2</javafx.version>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>net.jcip</groupId>
+			<artifactId>jcip-annotations</artifactId>
+			<version>1.0</version>
+		</dependency>
 		<dependency>
 			<groupId>javax.json</groupId>
 			<artifactId>javax.json-api</artifactId>
@@ -84,15 +90,15 @@
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>4.0.0</version>
+			<version>4.3.1</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<version>1.18.22</version>
-			<scope>provided</scope>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.projectlombok</groupId>-->
+<!--			<artifactId>lombok</artifactId>-->
+<!--			<version>1.18.22</version>-->
+<!--			<scope>provided</scope>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.eclipse.paho</groupId>
 			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
@@ -122,6 +128,11 @@
 			<groupId>com.gluonhq</groupId>
 			<artifactId>gluonfx-maven-plugin</artifactId>
 			<version>1.0.11</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>${protobuf.java.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -157,6 +168,15 @@
 						</goals>
 						<configuration>
 							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>module-info.class</exclude>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
 							<filter>
 								<artifact>org.bouncycastle:*</artifact>
 								<excludes>
@@ -176,17 +196,13 @@
 						</filters>
 							<artifactSet>
 								<includes>
-<!--									<include>org.openjfx:javafx-base</include>-->
-<!--									<include>org.openjfx:javafx-graphics</include>-->
-<!--									<include>org.openjfx:javafx-fxml</include>-->
-<!--									<include>org.openjfx:javafx-web</include>-->
-<!--									<include>org.openjfx:javafx-controls</include>-->
 									<include>javax.json</include>
 									<include>org.glassfish:javax.json</include>
 									<include>org.eclipse.paho:org.eclipse.paho.client.mqttv3</include>
 									<include>org.bouncycastle:bcmail-jdk15on</include>
 									<include>org.bouncycastle:bcpkix-jdk15on</include>
 									<include>org.bouncycastle:bcprov-jdk15on</include>
+									<include>com.google.protobuf</include>
 								</includes>
 							</artifactSet>
 						</configuration>
@@ -259,19 +275,16 @@
 							<sourceDirectories>
 								<sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
 							</sourceDirectories>
-							<excludes>webpack.generated.js</excludes>
-							<excludes>webpack.config.js</excludes>
 							<excludes>package.json</excludes>
 							<excludes>package-lock.json</excludes>
 							<excludes>**/node/**</excludes>
 							<excludes>**/node_modules/**</excludes>
 							<excludes>**/generated/**/*</excludes>
-							<excludes>**/generated-sources/vwscdn/**/*</excludes>
-							<excludes>**/generated-sources/wscdn/**/*</excludes>
-							<excludes>com/vaadin/**/*,in/virit/**/*,com/acme/**/*</excludes>
 							<checkstyleRules>
-
 								<module name="Checker">
+									<module name="BeforeExecutionExclusionFileFilter">
+										<property name="fileNamePattern" value=".*[\\/]src[\\/]main[\\/]java[\\/]com[\\/]smartphonedev[\\/]protobuf[\\/].*$"/>
+									</module>
 									<module name="BeforeExecutionExclusionFileFilter">
 										<property name="fileNamePattern" value="module\-info\.java$"/>
 									</module>

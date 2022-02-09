@@ -5,6 +5,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import net.jcip.annotations.NotThreadSafe;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -15,14 +16,15 @@ import java.net.UnknownHostException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@NotThreadSafe
 public class MQTTServer extends Application
 {
     private static final int MQTT_QOS = 2;
-    static final String MQTT_TOPIIC = "macdonalds/adelaide/hindley/44";
     private MqttAsyncClient mqttAsyncClient = null;
     private Agency notificationObservable = new Agency();
 
     private static MQTTServer applicationInstance;
+    private final ResourceReader resourceReader = new ResourceReader();
 
     public MQTTServer()
     {
@@ -56,49 +58,64 @@ public class MQTTServer extends Application
         return notificationObservable;
     }
 
-    protected void publishMessage(final String messageToSend, final boolean retained)
+
+    protected void publishStringMessage(final String messageToSend, final boolean retained)
     {
-        if (mqttAsyncClient == null)
+        publishBinaryMessage(messageToSend.getBytes(), retained);
+    }
+
+    public void publishBinaryMessage(byte[] messageToSend, final boolean retained)
+    {
+        publishBinaryMessage(messageToSend, retained, resourceReader.getDefaultTopic());
+    }
+
+    protected void publishBinaryMessage(final byte[] messageToSend, final boolean retained, final String topic)
+    {
+        if ((messageToSend.length == 0) || (topic == null))
         {
-            connectToMQTTServer();
-        }
-
-        if (mqttAsyncClient.isConnected())
+            getNotificationObservable().setInformation("Message not sent, invalid parameters");
+        } else
         {
-            try
+            if (mqttAsyncClient == null)
             {
-                mqttAsyncClient.publish(MQTT_TOPIIC, messageToSend.getBytes(), MQTT_QOS, retained, null, new IMqttActionListener()
-                {
-
-                    @Override
-                    public void onSuccess(IMqttToken iMqttToken)
-                    {
-                        getNotificationObservable().setInformation("Message sent successfully");
-                    }
-
-                    @Override
-                    public void onFailure(IMqttToken iMqttToken, Throwable throwable)
-                    {
-                        getNotificationObservable().setInformation("Message not sent");
-                    }
-                });
-            } catch (MqttPersistenceException pe)
-            {
-                getNotificationObservable().setInformation("Message not sent: PersistenceException");
-            } catch (MqttException me)
-            {
-                getNotificationObservable().setInformation("Message not sent: " + me.getMessage());
+                connectToMQTTServer();
             }
 
-        }
+            if (mqttAsyncClient.isConnected())
+            {
+                try
+                {
+                    mqttAsyncClient.publish(topic, messageToSend, MQTT_QOS, retained, null, new IMqttActionListener()
+                    {
 
+                        @Override
+                        public void onSuccess(IMqttToken iMqttToken)
+                        {
+                            getNotificationObservable().setInformation("Message sent successfully");
+                        }
+
+                        @Override
+                        public void onFailure(IMqttToken iMqttToken, Throwable throwable)
+                        {
+                            getNotificationObservable().setInformation("Message not sent");
+                        }
+                    });
+
+                } catch (MqttPersistenceException pe)
+                {
+                    getNotificationObservable().setInformation("Message not sent: PersistenceException");
+                } catch (MqttException me)
+                {
+                    getNotificationObservable().setInformation("Message not sent: " + me.getMessage());
+                }
+            }
+        }
     }
 
     protected boolean connectToMQTTServer()
     {
         final AtomicBoolean didConnect = new AtomicBoolean(false);
         final AtomicBoolean hasUpdated = new AtomicBoolean(false);
-        var resourceReader = new ResourceReader();
         Optional<String> hostname;
         try
         {
@@ -123,7 +140,7 @@ public class MQTTServer extends Application
             final int mqttServerPort = 8883;
             final String mqttServerURI = String.format("ssl://%s:%d", mqttServerHost, mqttServerPort);
 
-            final String mqttClientId = hostname + "-mqtt-server";
+            final String mqttClientId = hostname.get() + "-mqtt-server";
             mqttAsyncClient = new MqttAsyncClient(mqttServerURI, mqttClientId, memoryPersistence);
 
 
@@ -189,4 +206,14 @@ public class MQTTServer extends Application
     }
 
 
+    protected void closeMQTTConnection()
+    {
+        try
+        {
+            mqttAsyncClient.close();
+        } catch (MqttException e)
+        {
+            e.printStackTrace();
+        }
+    }
 }

@@ -4,5 +4,6 @@
   "clientKeyFilePath":"/home/damien/mosquitto-client/client.key",
   "serverHost": "development",
   "userName": "mqttdev",
-  "password": "programmer"
+  "password": "programmer",
+  "defaultTopic": "macdonalds/adelaide/hindley/44"
 }

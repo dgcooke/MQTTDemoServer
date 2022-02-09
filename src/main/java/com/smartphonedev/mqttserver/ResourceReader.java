@@ -1,5 +1,7 @@
 package com.smartphonedev.mqttserver;
+
 import com.smartphonedev.mqttserver.exceptions.InvalidResourceFileException;
+import net.jcip.annotations.ThreadSafe;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -11,7 +13,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+@ThreadSafe
 /*protected*/ final class ResourceReader
 {
     private static final  Logger LOGGER = Logger.getLogger(ResourceReader.class.getName());
@@ -21,8 +23,9 @@ import java.util.logging.Logger;
     private static final String SERVER_HOST = "serverHost";
     private static final String SERVER_HOST_USER_NAME = "userName";
     private static final String SERVER_HOST_PASSWORD = "password";
+    private static final String DEFAULT_TOPIC = "defaultTopic";
 
-    public String getCACertificateFilePath()
+    protected String getCACertificateFilePath()
     {
         var jsonObject = readResourceFileAsJsonObject();
         if (jsonObject.isPresent())
@@ -35,7 +38,7 @@ import java.util.logging.Logger;
         return "";
     }
 
-    public String getClientCertificatePath()
+    protected String getClientCertificatePath()
     {
         var jsonObject = readResourceFileAsJsonObject();
         if (jsonObject.isPresent())
@@ -48,7 +51,7 @@ import java.util.logging.Logger;
         return "";
     }
 
-    public String getClientKeyPath()
+    protected String getClientKeyPath()
     {
         var jsonObject = readResourceFileAsJsonObject();
         if (jsonObject.isPresent())
@@ -61,11 +64,11 @@ import java.util.logging.Logger;
         return "";
     }
 
-    private Optional<JsonObject> readResourceFileAsJsonObject()
+    protected Optional<JsonObject> readResourceFileAsJsonObject()
     {
         try
         {
-           return getJSONStringAsJsonObject(getFileContentsLineByLineAsString(getClientSettingsFile()));
+            return getJSONStringAsJsonObject(getFileContentsLineByLineAsString(getClientSettingsFile()));
 
         } catch (Exception e)
         {
@@ -75,7 +78,7 @@ import java.util.logging.Logger;
         return Optional.empty();
     }
 
-    public String getServerHostname()
+    protected String getServerHostname()
     {
         var jsonObject = readResourceFileAsJsonObject();
         if (jsonObject.isPresent())
@@ -88,7 +91,7 @@ import java.util.logging.Logger;
         return "";
     }
 
-    public String getPassword()
+    protected String getPassword()
     {
         var jsonObject = readResourceFileAsJsonObject();
         if (jsonObject.isPresent())
@@ -101,7 +104,7 @@ import java.util.logging.Logger;
         return "";
     }
 
-    public String getUserName()
+    protected String getUserName()
     {
         var jsonObject = readResourceFileAsJsonObject();
         if (jsonObject.isPresent())
@@ -114,10 +117,23 @@ import java.util.logging.Logger;
         return "";
     }
 
+    protected String getDefaultTopic()
+    {
+        var jsonObject = readResourceFileAsJsonObject();
+        if (jsonObject.isPresent())
+        {
+            if (jsonObject.get().containsKey(DEFAULT_TOPIC))
+            {
+                return jsonObject.get().getString(DEFAULT_TOPIC);
+            }
+        }
+        return "";
+    }
+
 
     private File getClientSettingsFileOld() throws URISyntaxException, InvalidResourceFileException
     {
-       final  Optional<URL> resource = Optional.ofNullable(getClass().getClassLoader().getResource("client_settings.json"));
+        final  Optional<URL> resource = Optional.ofNullable(getClass().getClassLoader().getResource("client_settings.json"));
         if (resource.isPresent())
         {
             return new File(resource.get().toURI());
@@ -139,16 +155,19 @@ import java.util.logging.Logger;
         }
     }
 
+
     private InputStream getClientSettingsFile() throws URISyntaxException, InvalidResourceFileException
     {
         final String configFileName = "client_settings.json";
-        ClassLoader classLoader = getClass().getClassLoader();
-        var inputStream = classLoader.getResourceAsStream(configFileName);
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final var inputStream = classLoader.getResourceAsStream(configFileName);
 
         // the stream holding the file content
-        if (inputStream == null) {
+        if (inputStream == null)
+        {
             throw new IllegalArgumentException("file not found! " + configFileName);
-        } else {
+        } else
+        {
             return inputStream;
         }
     }
@@ -158,6 +177,7 @@ import java.util.logging.Logger;
         final var  contentBuilder = new StringBuilder();
         final var inputStreamReader = new InputStreamReader(configFileInputStream);
         final var bufferedReader = new BufferedReader(inputStreamReader);
+
         bufferedReader.lines().forEach(contentBuilder::append);
         try
         {

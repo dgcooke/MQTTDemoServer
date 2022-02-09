@@ -9,7 +9,10 @@ module MQTTDemoServer {
     requires org.bouncycastle.provider;
     requires org.eclipse.paho.client.mqttv3;
     requires java.json;
-    //requires javax.json;
+    requires jcip.annotations;
+    requires com.google.protobuf;
+
+
 
     opens com.smartphonedev.mqttserver;
     //opens com.smartphonedev.mqttserver.controller;

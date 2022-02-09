@@ -1,0 +1,14 @@
+syntax = "proto2";
+package com.smartphonedev.protobuf;
+
+option java_multiple_files = true;
+option java_package = "com.smartphonedev.protobuf";
+option java_outer_classname = "PunchInProtobuf";
+
+message PunchIn{
+  optional string firstName = 1;
+  optional string LastName = 2;
+  optional string staffID = 3;
+  optional string utcTimestamp = 4;
+  optional string storeID = 5;
+}
